@@ -3,9 +3,6 @@ import openai
 from openai import OpenAI
 import os
 
-# Configure OpenAI API
-client = OpenAI(api_key="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")
-
 # Streamlit page configuration
 st.set_page_config(
     page_title="OpenAI Chatbot",
@@ -14,7 +11,64 @@ st.set_page_config(
 )
 
 st.title("🤖 OpenAI Chatbot")
-st.write("Powered by OpenAI's GPT model - Ask me anything!")
+
+# Check if API key is provided
+if "api_key" not in st.session_state:
+    st.session_state.api_key = ""
+
+if not st.session_state.api_key:
+    st.write("Welcome! To use this chatbot, you need to provide your own OpenAI API key.")
+    
+    # API Key input section
+    st.markdown("### 🔑 Enter Your OpenAI API Key")
+    st.info("Your API key is stored only for this session and is not saved anywhere.")
+    
+    api_key_input = st.text_input(
+        "OpenAI API Key:", 
+        type="password", 
+        placeholder="sk-...",
+        help="Get your API key from https://platform.openai.com/api-keys"
+    )
+    
+    if st.button("Connect"):
+        if api_key_input.strip():
+            if api_key_input.startswith("sk-"):
+                st.session_state.api_key = api_key_input.strip()
+                st.success("✅ API Key connected! You can now start chatting.")
+                st.rerun()
+            else:
+                st.error("❌ Please enter a valid OpenAI API key (starts with 'sk-')")
+        else:
+            st.warning("⚠️ Please enter your API key first")
+    
+    # Instructions
+    st.markdown("---")
+    st.markdown("### 📋 How to get your OpenAI API Key:")
+    st.markdown("1. Go to [OpenAI Platform](https://platform.openai.com/)")
+    st.markdown("2. Sign up or log in to your account")
+    st.markdown("3. Go to [API Keys section](https://platform.openai.com/api-keys)")
+    st.markdown("4. Click 'Create new secret key'")
+    st.markdown("5. Copy the key and paste it above")
+    
+    st.markdown("### 💡 Note:")
+    st.markdown("• You will be charged based on your OpenAI usage")
+    st.markdown("• Your API key is only stored in this session")
+    st.markdown("• This app doesn't store or share your API key")
+    
+    st.stop()
+
+# If API key is provided, show the chatbot
+st.write("🔗 Connected with your OpenAI API key")
+
+# Initialize OpenAI client with user's API key
+try:
+    client = OpenAI(api_key=st.session_state.api_key)
+except Exception as e:
+    st.error(f"❌ Invalid API key: {e}")
+    if st.button("Reset API Key"):
+        st.session_state.api_key = ""
+        st.rerun()
+    st.stop()
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -87,6 +141,11 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
     
+    if st.button("Change API Key"):
+        st.session_state.api_key = ""
+        st.session_state.messages = []
+        st.rerun()
+    
     st.write(f"Messages: {len(st.session_state.messages)}")
     
     # Model selection
@@ -100,11 +159,11 @@ with st.sidebar:
     
     # Note about usage
     st.markdown("---")
-    st.markdown("**Note:**")
-    st.markdown("• This uses your OpenAI API key")
-    st.markdown("• Each message costs a small amount")
-    st.markdown("• GPT-4 is more expensive than GPT-3.5")
-    st.markdown("• Clear chat to save on tokens")
+    st.markdown("**Your Usage:**")
+    st.markdown("• Using your own OpenAI API key")
+    st.markdown("• You pay for what you use")
+    st.markdown("• GPT-4 costs more than GPT-3.5")
+    st.markdown("• Clear chat to save tokens")
 
 # Update the model in the function if user changes it
 if 'model_choice' in locals():
