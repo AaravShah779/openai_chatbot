@@ -4,7 +4,7 @@ from openai import OpenAI
 import os
 
 # Configure OpenAI API
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="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")
 
 # Streamlit page configuration
 st.set_page_config(
